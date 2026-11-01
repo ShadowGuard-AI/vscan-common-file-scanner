@@ -119,6 +119,10 @@ def send_head_request(url, timeout):
         requests.Response or None: The response object if successful, None otherwise.
     """
     try:
+        # Redirects are followed and only the final status is looked
+        # at, so a protected file that bounces to a login page ending
+        # in 200 is reported as found. A catch all route or a soft 404
+        # page does the same, and I never look at the body to check.
         response = requests.head(url, timeout=timeout, allow_redirects=True)
         logging.debug(f"HEAD {url} - Status Code: {response.status_code}")
         return response
@@ -138,6 +142,11 @@ def scan_target(target_url, paths, timeout):
     Returns:
         list: A list of tuples containing the path and status code for existing paths.
     """
+    # urljoin treats the target as a file when it has no trailing
+    # slash, so https://host/app plus a wordlist entry resolves beside
+    # app, not under it. An entry starting with a slash resets to the
+    # host root instead. The wordlist and the target spelling have to
+    # agree, and nothing here warns when they do not.
     existing_paths = []
     for path in paths:
         full_url = urljoin(target_url, path)
