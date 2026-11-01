@@ -11,6 +11,7 @@ Usage Examples:
 
 import argparse
 import logging
+import os
 import sys
 import requests
 from urllib.parse import urljoin
@@ -87,6 +88,13 @@ def load_wordlist(wordlist_path):
     Returns:
         list: A list of paths to scan.
     """
+    # The built in default list ships next to this script, so the
+    # documented default run works even when it is started from another
+    # directory. An operator supplied -w path is used exactly as given.
+    if wordlist_path == 'common_paths.txt' and not os.path.exists(wordlist_path):
+        bundled = os.path.join(os.path.dirname(os.path.abspath(__file__)), wordlist_path)
+        if os.path.exists(bundled):
+            wordlist_path = bundled
     try:
         with open(wordlist_path, 'r') as file:
             paths = [line.strip() for line in file if line.strip()]
